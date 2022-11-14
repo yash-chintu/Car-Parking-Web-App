@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>User Home</title>
+</head>
+
+<body>
+
+
+    <nav class="navbar ">
+        <div class="navbar-start">
+            <div class="navbar-item">
+                <h1 class="title">Parking Lot Management</h1>
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <form action="/auth/logout"method="post">
+                <div class="navbar-item mt-3">
+                    <button class="button is-link is-normal">Log-out</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+    <div class="columns">
+    <div class="card column is-6 is-offset-3 mt-2">
+        <% if(user.carLocation){ %>
+                <div class="card-content">
+                        <h1 class="title">Welcome !</h1>
+                        <h1 class="is-size-4">Your Car is parked at : <%= user.carLocation.name %> , <%=user.carLocation.parCityName%></h1>
+                </div>
+            <div class="has-text-centered mt-3">
+                <form action="/user/<%=user._id%>/leave"method="post">
+                    <button id="Leaving" class="button is-link is-danger">Leave</button>
+                </form>
+            </div>
+        <%}else{%>
+            <label class="label">City</label>
+                    <div>
+                        <select name="city" class="input" type="text" id="cat">
+
+                        </select>
+                    </div>
+            
+            <label class="label">Area</label>
+                <form action="/user/<%=user._id%>/park"method="post">
+                    <div>
+                        <select name="subcity_id" class="input" type="text" id="subcat">
+                        </select>
+                    </div>
+                    <div>
+                        <p id="Spaces"class="label mt-2">Number of Parking Slots Available : </p>
+                    </div>
+                    <div class="has-text-centered mt-3">
+                        <button id="Parking" class="button is-link is-normal">Park Here</button>
+                    </div>
+                </form>
+        <%}%>
+    
+    </div>
+    </div>
+    <div class="card">
+    </div>
+    
+
+<script>
+        const categories = `<%-cities_str%>`;
+        const catParsed=JSON.parse(categories);
+        const catSelect = document.getElementById('cat');
+        const subCatSelect = document.getElementById('subcat');
+
+    for(let category of catParsed){
+        catSelect.innerHTML += `<option value="${category._id}">${category.name}</option>`;
+    }
+    catSelect.addEventListener('change',()=>{
+        setSubcategories();
+        setSpaces();
+    });
+    setSubcategories();
+
+
+    function setSubcategories() {
+        var selectedCat= catSelect.value;
+        var subCats;
+        for(let category of catParsed){
+            if(category._id==selectedCat){
+                subCats=category.sub_cities;
+            }
+        }
+        subCatSelect.innerHTML = '';
+        for(let subCat of subCats){
+            subCatSelect.innerHTML += `<option value="${subCat._id}">${subCat.name}</option>`;
+        }
+    }
+
+    const spaces = document.getElementById('Spaces');
+
+    subCatSelect.addEventListener('change', setSpaces);
+    setSpaces();
+    function setSpaces(){
+        var selectedSubCat= subCatSelect.value;
+        var spacesAvailable;
+        for(let category of catParsed){
+            for(let subCat of category.sub_cities){
+                if(subCat._id==selectedSubCat){
+                    spacesAvailable=subCat.maxCapacity-subCat.currentCapacity;
+                }
+            }
+        }
+        spaces.innerHTML = `Number of Parking Slots Available : ${spacesAvailable}`;
+        if(spacesAvailable<=0){
+            var button = document.getElementById('Parking');
+            button.disabled = true;
+        }
+        else{
+            var button = document.getElementById('Parking');
+            button.disabled = false;
+        }
+    }
+
+
+
+</script>
+
+
+
+
+</body>
+
+</html>
